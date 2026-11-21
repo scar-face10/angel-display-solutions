@@ -4,7 +4,7 @@ export const siteData = {
   tagline: 'Your vision. Our creation.',
   contact: {
     director: 'B Sapna Kaur, Director',
-    email: 'angelsdisplayll@gmail.com',
+    email: 'angelsdisplaysolutionsllp@gmail.com',
     phone: '+91 7799881118',
     whatsapp: '+91 7799881118',
     instagram: 'https://www.instagram.com/angelsdisplaysolutions.llp?xtok=dWNxeGZkNWx1aXdy',
