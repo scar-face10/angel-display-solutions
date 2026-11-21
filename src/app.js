@@ -44,6 +44,7 @@ function initHeader() {
     menu.setAttribute('aria-expanded', 'false');
     menu.querySelector('b').textContent = 'Open menu';
     nav.classList.remove('is-open');
+    document.body.classList.remove('no-scroll');
     menuLastFocus?.focus();
     menuLastFocus = null;
   };
@@ -52,7 +53,14 @@ function initHeader() {
   menu.addEventListener('click', () => {
     const open = menu.getAttribute('aria-expanded') === 'true';
     if (open) closeMenu();
-    else { menuLastFocus = document.activeElement; menu.setAttribute('aria-expanded', 'true'); menu.querySelector('b').textContent = 'Close menu'; nav.classList.add('is-open'); qs('a', nav)?.focus(); }
+    else {
+      menuLastFocus = document.activeElement;
+      menu.setAttribute('aria-expanded', 'true');
+      menu.querySelector('b').textContent = 'Close menu';
+      nav.classList.add('is-open');
+      if (window.innerWidth <= 720) document.body.classList.add('no-scroll');
+      qs('a', nav)?.focus();
+    }
   });
   nav.addEventListener('click', (event) => { if (event.target.closest('a')) closeMenu(); });
   document.addEventListener('keydown', (event) => { if (event.key === 'Escape' && nav.classList.contains('is-open')) closeMenu(); });
@@ -81,7 +89,16 @@ function initCarousel() {
   pause.addEventListener('click', () => setPaused(!paused));
   root.addEventListener('mouseenter', () => { if (!paused) clearInterval(timer); }); root.addEventListener('mouseleave', resetTimer);
   root.addEventListener('focusin', () => { if (!paused) clearInterval(timer); }); root.addEventListener('focusout', resetTimer);
-  let startX = 0; stage.addEventListener('touchstart', (event) => { startX = event.changedTouches[0].screenX; }, { passive: true }); stage.addEventListener('touchend', (event) => { const delta = event.changedTouches[0].screenX - startX; if (Math.abs(delta) > 45) { render(active + (delta < 0 ? 1 : -1)); resetTimer(); } }, { passive: true });
+  let startX = 0; let startY = 0;
+  stage.addEventListener('touchstart', (event) => { startX = event.changedTouches[0].clientX; startY = event.changedTouches[0].clientY; }, { passive: true });
+  stage.addEventListener('touchend', (event) => {
+    const deltaX = event.changedTouches[0].clientX - startX;
+    const deltaY = event.changedTouches[0].clientY - startY;
+    if (Math.abs(deltaX) > 40 && Math.abs(deltaX) > Math.abs(deltaY) * 1.2) {
+      render(active + (deltaX < 0 ? 1 : -1));
+      resetTimer();
+    }
+  }, { passive: true });
   render(0);
 }
 
@@ -168,6 +185,19 @@ function initLightbox() {
   qsa('[data-lightbox-close]', modal).forEach((el) => el.addEventListener('click', close));
   qs('[data-lightbox-prev]', modal).addEventListener('click', () => render(visibleIndices[(visibleIndices.indexOf(active) - 1 + visibleIndices.length) % visibleIndices.length])); qs('[data-lightbox-next]', modal).addEventListener('click', () => render(visibleIndices[(visibleIndices.indexOf(active) + 1) % visibleIndices.length]));
   document.addEventListener('keydown', (event) => { if (!modal.classList.contains('is-open')) return; trapFocus(modal, event); if (event.key === 'Escape') close(); if (event.key === 'ArrowLeft') render(visibleIndices[(visibleIndices.indexOf(active) - 1 + visibleIndices.length) % visibleIndices.length]); if (event.key === 'ArrowRight') render(visibleIndices[(visibleIndices.indexOf(active) + 1) % visibleIndices.length]); });
+  let lbStartX = 0; let lbStartY = 0;
+  modal.addEventListener('touchstart', (event) => { lbStartX = event.changedTouches[0].clientX; lbStartY = event.changedTouches[0].clientY; }, { passive: true });
+  modal.addEventListener('touchend', (event) => {
+    const deltaX = event.changedTouches[0].clientX - lbStartX;
+    const deltaY = event.changedTouches[0].clientY - lbStartY;
+    if (Math.abs(deltaX) > 45 && Math.abs(deltaX) > Math.abs(deltaY) * 1.25) {
+      if (deltaX < 0) {
+        render(visibleIndices[(visibleIndices.indexOf(active) + 1) % visibleIndices.length]);
+      } else {
+        render(visibleIndices[(visibleIndices.indexOf(active) - 1 + visibleIndices.length) % visibleIndices.length]);
+      }
+    }
+  }, { passive: true });
   const filterRoot = qs('[data-gallery-filters]'); const categories = ['All', 'Showroom', 'Display', 'Packaging', 'Furniture']; const filterNote = qs('[data-gallery-filter-note]');
   filterRoot.innerHTML = categories.map((categoryName, index) => `<button class="filter-button ${index === 0 ? 'is-active' : ''}" type="button" data-gallery-filter="${categoryName}" aria-pressed="${index === 0}">${categoryName === 'All' ? 'All ' : categoryName}</button>`).join('');
   const typeRoot = qs('[data-display-types]'); const furnitureRoot = qs('[data-furniture-types]');
