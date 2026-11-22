@@ -58,7 +58,7 @@ function initHeader() {
       menu.setAttribute('aria-expanded', 'true');
       menu.querySelector('b').textContent = 'Close menu';
       nav.classList.add('is-open');
-      if (window.innerWidth <= 720) document.body.classList.add('no-scroll');
+      if (window.innerWidth <= 900) document.body.classList.add('no-scroll');
       qs('a', nav)?.focus();
     }
   });
@@ -126,11 +126,13 @@ function renderOfferings() {
 function initImmersiveSections() {
   const revealItems = qsa('[data-reveal]');
   if (!revealItems.length) return;
-  revealItems.forEach((item) => item.classList.add('is-visible'));
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) {
+    revealItems.forEach((item) => item.classList.add('is-visible'));
+    return;
+  }
   const observer = new IntersectionObserver((entries) => entries.forEach((entry) => { if (entry.isIntersecting) { entry.target.classList.add('is-visible'); observer.unobserve(entry.target); } }), { threshold: .14, rootMargin: '0px 0px -8% 0px' });
   revealItems.forEach((item) => observer.observe(item));
-  window.setTimeout(() => revealItems.forEach((item) => item.classList.add('is-visible')), 1200);
+  window.setTimeout(() => revealItems.forEach((item) => item.classList.add('is-visible')), 2500);
   qsa('[data-immersive-section]').forEach((section) => section.addEventListener('pointermove', (event) => {
     const rect = section.getBoundingClientRect();
     section.style.setProperty('--pointer-x', `${((event.clientX - rect.left) / rect.width) * 100}%`);
@@ -286,6 +288,120 @@ function initStorefront() {
   renderProducts();
 }
 
-function initForm() { const form = qs('[data-quote-form]'); if (!form) return; form.addEventListener('submit', (event) => { event.preventDefault(); qs('[data-form-status]', form).textContent = 'Prototype only: no message was sent. Connect a secure form destination to enable enquiries.'; }); }
+function initForm() {
+  const form = qs('[data-quote-form]');
+  if (!form) return;
 
+  const statusEl = qs('[data-form-status]', form);
+  const submitBtn = qs('[data-submit-btn]', form) || qs('[type="submit"]', form);
+  const nameInput = qs('#enquiry-name', form);
+  const emailInput = qs('#enquiry-email', form);
+  const phoneInput = qs('#enquiry-phone', form);
+  const serviceSelect = qs('#enquiry-service', form);
+  const messageInput = qs('#enquiry-message', form);
+
+  if (statusEl) {
+    statusEl.textContent = '';
+    statusEl.className = 'form-status';
+  }
+
+  const inputs = [nameInput, emailInput, phoneInput, serviceSelect, messageInput].filter(Boolean);
+
+  function clearErrors() {
+    inputs.forEach((el) => el.setAttribute('aria-invalid', 'false'));
+    if (statusEl) {
+      statusEl.textContent = '';
+      statusEl.className = 'form-status';
+    }
+  }
+
+  inputs.forEach((input) => {
+    input.addEventListener('input', () => {
+      if (input.getAttribute('aria-invalid') === 'true') {
+        input.setAttribute('aria-invalid', 'false');
+      }
+    });
+    if (input.tagName === 'SELECT') {
+      input.addEventListener('change', () => {
+        input.setAttribute('aria-invalid', 'false');
+      });
+    }
+  });
+
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    clearErrors();
+
+    const name = nameInput ? nameInput.value.trim() : '';
+    const email = emailInput ? emailInput.value.trim() : '';
+    const phone = phoneInput ? phoneInput.value.trim() : '';
+    const service = serviceSelect ? serviceSelect.value : '';
+    const message = messageInput ? messageInput.value.trim() : '';
+
+    // Validate Required Fields
+    if (!name || name.length < 2) {
+      nameInput?.setAttribute('aria-invalid', 'true');
+      nameInput?.focus();
+      if (statusEl) {
+        statusEl.textContent = 'Please enter your full name.';
+        statusEl.className = 'form-status form-status--error';
+      }
+      return;
+    }
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+      emailInput?.setAttribute('aria-invalid', 'true');
+      emailInput?.focus();
+      if (statusEl) {
+        statusEl.textContent = 'Please enter a valid email address.';
+        statusEl.className = 'form-status form-status--error';
+      }
+      return;
+    }
+
+    if (!service) {
+      serviceSelect?.setAttribute('aria-invalid', 'true');
+      serviceSelect?.focus();
+      if (statusEl) {
+        statusEl.textContent = 'Please select a service interested in.';
+        statusEl.className = 'form-status form-status--error';
+      }
+      return;
+    }
+
+    if (!message || message.length < 5) {
+      messageInput?.setAttribute('aria-invalid', 'true');
+      messageInput?.focus();
+      if (statusEl) {
+        statusEl.textContent = 'Please provide your enquiry requirements (at least 5 characters).';
+        statusEl.className = 'form-status form-status--error';
+      }
+      return;
+    }
+
+    // Prepare mailto email content
+    const recipient = siteData?.contact?.email || 'angelsdisplaysolutionsllp@gmail.com';
+    const subject = 'New Website Enquiry – Angels Display Solutions LLP';
+    const body = 
+`Full Name: ${name}
+Email Address: ${email}
+Phone Number: ${phone || 'Not provided'}
+Service Interested In: ${service}
+
+Enquiry Message / Project Requirements:
+${message}
+`;
+
+    const mailtoUrl = `mailto:${recipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+    // Open user's default email client
+    window.location.href = mailtoUrl;
+
+    if (statusEl) {
+      statusEl.innerHTML = 
+        `Opening your email application... Please review and send your enquiry to <strong>${recipient}</strong>.<br><small style="display:inline-block;margin-top:0.35rem">If your email client didn’t open automatically, <a href="${mailtoUrl}" style="color:var(--gold);text-decoration:underline">click here to send directly</a>.</small>`;
+      statusEl.className = 'form-status form-status--success';
+    }
+  });
+}
 hydrateSiteDetails(); initHeader(); initCarousel(); initServices(); renderGalleryPreview(); renderOfferings(); initImmersiveSections(); initLightbox(); initCart(); initStorefront(); initForm();
