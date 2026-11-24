@@ -13,7 +13,7 @@ const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matc
 
 function hydrateSiteDetails() {
   const { contact } = siteData;
-  qsa('[data-footer-director]').forEach((node) => { node.textContent = contact.director; });
+  qsa('[data-footer-director]').forEach((node) => { if (contact.director) { node.textContent = contact.director; } else { node.remove(); } });
   qsa('[data-contact-phone], [data-footer-phone]').forEach((node) => { node.textContent = contact.phone; });
   qsa('[data-contact-address], [data-footer-address]').forEach((node) => { node.textContent = contact.address; });
   qsa('[data-contact-email]').forEach((node) => { node.textContent = contact.email; node.href = `mailto:${contact.email}`; });

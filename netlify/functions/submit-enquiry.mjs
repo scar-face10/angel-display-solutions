@@ -348,8 +348,8 @@ async function sendCustomerAcknowledgement({
             </p>
             <p style="font-size:13px;line-height:1.65;color:#84796d;margin:0">
               Warm regards,<br>
-              <strong>B Sapna Kaur</strong><br>
-              Director, Angels Display Solutions LLP<br>
+              <strong>Angels Display Solutions Team</strong><br>
+              Angels Display Solutions LLP<br>
               Badangpet, Hyderabad 500058
             </p>
           </td>

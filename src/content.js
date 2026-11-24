@@ -3,7 +3,7 @@ export const siteData = {
   brand: 'Angels Display Solutions LLP',
   tagline: 'Your vision. Our creation.',
   contact: {
-    director: 'B Sapna Kaur, Director',
+    director: '',
     email: 'angelsdisplaysolutionsllp@gmail.com',
     phone: '+91 7799881118',
     whatsapp: '+91 7799881118',
@@ -38,7 +38,7 @@ export const siteData = {
     pullQuote: 'From the first counter to the complete showroom, every touchpoint should feel like the brand.',
     highlights: ['Elegant jewellery trays and counters', 'Complete showroom interiors', 'Visual merchandising concepts'],
     location: 'Badangpet, Hyderabad, Telangana',
-    experience: 'Directed by B Sapna Kaur',
+    experience: 'Bespoke design & end-to-end execution',
     capabilities: 'Display solutions, showroom design, VM, packaging, and furniture'
   },
   offerings: [
