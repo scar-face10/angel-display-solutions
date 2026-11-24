@@ -24,7 +24,11 @@ function hydrateSiteDetails() {
   });
   qsa('[data-contact-phone-link]').forEach((node) => { const digits = contact.phone.replace(/\D/g, ''); node.textContent = contact.phone; node.href = digits ? `https://wa.me/${digits}` : '#contact'; });
   qsa('[data-contact-instagram]').forEach((node) => { node.href = contact.instagram; });
-  const story = qs('[data-about-story]'); if (story) story.textContent = siteData.about.story;
+  const story = qs('[data-about-story]');
+  if (story) {
+    const sentences = siteData.about.story.match(/[^.!?]+[.!?]+/g) || [siteData.about.story];
+    story.innerHTML = sentences.map((s) => `<p>${s.trim()}</p>`).join('');
+  }
   const intro = qs('[data-about-intro]'); if (intro) intro.textContent = siteData.about.intro;
   const quote = qs('[data-about-quote]'); if (quote) quote.textContent = siteData.about.pullQuote;
   const highlights = qs('[data-about-highlights]'); if (highlights) highlights.innerHTML = siteData.about.highlights.map((item, index) => `<span><i>0${index + 1}</i>${item}</span>`).join('');
